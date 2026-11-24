@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic Maven Surefire report. All names, hosts and values are invented. -->
+<testsuite name="com.example.payments.api.PaymentsApiTest" tests="5" failures="2" errors="1" skipped="0" time="4.812">
+  <testcase name="createSepaPayment" classname="com.example.payments.api.PaymentsApiTest" time="0.912"/>
+  <testcase name="paymentIsIdempotentForSameKey" classname="com.example.payments.api.PaymentsApiTest" time="1.204">
+    <failure message="expected transactions count: &lt;1&gt; but was: &lt;2&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected transactions count: <1> but was: <2>
+	at com.example.payments.api.PaymentsApiTest.paymentIsIdempotentForSameKey(PaymentsApiTest.java:88)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)]]></failure>
+    <system-out><![CDATA[INFO POST /v2/payments Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxYS11c2VyIn0.c2lnbmF0dXJl Idempotency-Key=7f2c-11
+INFO request 1 -> tx-901, request 2 -> tx-902 (same key)]]></system-out>
+  </testcase>
+  <testcase name="registerNewCustomer" classname="com.example.payments.api.PaymentsApiTest" time="0.651">
+    <failure message="1 expectation failed. Expected status code &lt;201&gt; but was &lt;409&gt;." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 1 expectation failed.
+Expected status code <201> but was <409>. Body: {"error":"User with email qa.user01@example.test already exists"}
+	at com.example.payments.api.PaymentsApiTest.registerNewCustomer(PaymentsApiTest.java:41)]]></failure>
+    <system-out><![CDATA[INFO setup reused fixed email qa.user01@example.test from fixtures/customers.json]]></system-out>
+  </testcase>
+  <testcase name="fetchPartnerRates" classname="com.example.payments.api.PaymentsApiTest" time="0.087">
+    <error message="Connection refused: partner-rates.staging.internal/10.12.4.9:8443" type="java.net.ConnectException"><![CDATA[java.net.ConnectException: Connection refused: partner-rates.staging.internal/10.12.4.9:8443
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at com.example.payments.api.PaymentsApiTest.fetchPartnerRates(PaymentsApiTest.java:102)]]></error>
+  </testcase>
+  <testcase name="chargeTestCard" classname="com.example.payments.api.PaymentsApiTest" time="1.958"/>
+</testsuite>

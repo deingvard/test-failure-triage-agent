@@ -1,0 +1,7 @@
+{
+  "PaymentsApiTest#paymentIsIdempotentForSameKey": "PPPPPPPP",
+  "PaymentsApiTest#registerNewCustomer": "PPPPPPPP",
+  "PaymentsApiTest#fetchPartnerRates": "PPPPPPPP",
+  "CheckoutUiTest#payByCard": "PPPPPPPP",
+  "CheckoutUiTest#recentPaymentsWidgetLoads": "PPFPPFPP"
+}

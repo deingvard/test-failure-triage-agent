@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic Maven Surefire report. All names, hosts and values are invented. -->
+<testsuite name="com.example.web.CheckoutUiTest" tests="4" failures="2" errors="0" skipped="1" time="38.410">
+  <testcase name="openCheckoutPage" classname="com.example.web.CheckoutUiTest" time="3.120"/>
+  <testcase name="payByCard" classname="com.example.web.CheckoutUiTest" time="10.402">
+    <failure message="Element not found {#submit-payment}" type="com.codeborne.selenide.ex.ElementNotFound"><![CDATA[Element not found {#submit-payment}
+Expected: visible
+Timeout: 10 s.
+	at com.codeborne.selenide.impl.WebElementSource.checkCondition(WebElementSource.java:122)
+	at com.example.web.pages.CheckoutPage.submit(CheckoutPage.java:41)
+	at com.example.web.CheckoutUiTest.payByCard(CheckoutUiTest.java:33)]]></failure>
+    <system-out><![CDATA[INFO card 4111 1111 1111 1111 entered (test card)
+INFO frontend build 3.8.0 deployed to staging 40 min before the run]]></system-out>
+  </testcase>
+  <testcase name="recentPaymentsWidgetLoads" classname="com.example.web.CheckoutUiTest" time="10.871">
+    <failure message="Expected condition failed: waiting for visibility of element located by By.cssSelector: .recent-payments li (tried for 10 second(s))" type="org.openqa.selenium.TimeoutException"><![CDATA[org.openqa.selenium.TimeoutException: Expected condition failed: waiting for visibility of element located by By.cssSelector: .recent-payments li (tried for 10 second(s))
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at com.example.web.CheckoutUiTest.recentPaymentsWidgetLoads(CheckoutUiTest.java:58)]]></failure>
+    <system-out><![CDATA[DEBUG widget request /api/payments/recent took 9.8s]]></system-out>
+  </testcase>
+  <testcase name="applePayButtonVisible" classname="com.example.web.CheckoutUiTest" time="0.0">
+    <skipped message="not supported in headless chrome"/>
+  </testcase>
+</testsuite>
