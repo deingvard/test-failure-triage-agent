@@ -48,14 +48,24 @@ public final class LlmClassifier implements Classifier {
             Arrays.stream(Action.values()).map(Action::name).collect(Collectors.joining(", ")));
 
     private final LlmClient client;
+    private final String name;
 
     public LlmClassifier(LlmClient client) {
+        this(client, "llm");
+    }
+
+    /**
+     * @param client transport to the model (Anthropic API, local Ollama, or a fake in tests)
+     * @param name   classifier name used in reports, e.g. {@code llm} or {@code ollama}
+     */
+    public LlmClassifier(LlmClient client, String name) {
         this.client = client;
+        this.name = name;
     }
 
     @Override
     public String name() {
-        return "llm";
+        return name;
     }
 
     @Override

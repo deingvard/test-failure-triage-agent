@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.deingvard.triage.classify.AnthropicClient;
 import io.github.deingvard.triage.classify.Classifier;
 import io.github.deingvard.triage.classify.LlmClassifier;
+import io.github.deingvard.triage.classify.OllamaClient;
 import io.github.deingvard.triage.classify.RuleBasedClassifier;
 import io.github.deingvard.triage.eval.EvaluationResult;
 import io.github.deingvard.triage.eval.Evaluator;
@@ -32,9 +33,9 @@ import java.util.Map;
 /**
  * Command-line entry point.
  * <pre>
- *   triage evaluate data/dataset.jsonl [--classifier rules|llm] [--out results] [--min-confidence 0.6]
+ *   triage evaluate data/dataset.jsonl [--classifier rules|llm|ollama] [--out results] [--min-confidence 0.6]
  *   triage report   data/sample-report [--history data/sample-report/history.json]
- *                   [--classifier rules|llm] [--interactive] [--out results] [--min-confidence 0.6]
+ *                   [--classifier rules|llm|ollama] [--interactive] [--out results] [--min-confidence 0.6]
  * </pre>
  */
 public final class TriageCli {
@@ -158,8 +159,9 @@ public final class TriageCli {
     private static Classifier classifier(String name) {
         return switch (name) {
             case "rules" -> new RuleBasedClassifier();
-            case "llm" -> new LlmClassifier(AnthropicClient.fromEnvironment());
-            default -> throw new IllegalArgumentException("Unknown classifier: " + name + " (use rules or llm)");
+            case "llm" -> new LlmClassifier(AnthropicClient.fromEnvironment(), "llm");
+            case "ollama" -> new LlmClassifier(OllamaClient.fromEnvironment(), "ollama");
+            default -> throw new IllegalArgumentException("Unknown classifier: " + name + " (use rules, llm or ollama)");
         };
     }
 
@@ -184,8 +186,8 @@ public final class TriageCli {
     private static void usage() {
         System.err.println("""
                 Usage:
-                  triage evaluate <dataset.jsonl> [--classifier rules|llm] [--out results] [--min-confidence 0.6]
-                  triage report <junit-report-dir|file> [--history history.json] [--classifier rules|llm]
+                  triage evaluate <dataset.jsonl> [--classifier rules|llm|ollama] [--out results] [--min-confidence 0.6]
+                  triage report <junit-report-dir|file> [--history history.json] [--classifier rules|llm|ollama]
                                 [--interactive] [--out results] [--min-confidence 0.6]
                 """);
     }

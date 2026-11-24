@@ -1,0 +1,68 @@
+name: LLM evaluation (local open model)
+
+# Free alternative to the Claude API: runs an open-weights model with Ollama on the GitHub runner's CPU
+# and evaluates it on the same dataset with the same metrics as the rule baseline.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Ollama model tag"
+        type: string
+        default: "qwen2.5:7b"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/llm-eval.yml"
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      OLLAMA_MODEL: ${{ inputs.model || 'qwen2.5:7b' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build
+        run: mvn -B -q package -DskipTests
+
+      - name: Install and start Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          if ! curl -sf http://localhost:11434/api/version >/dev/null; then
+            nohup ollama serve > ollama.log 2>&1 &
+          fi
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:11434/api/version && break
+            sleep 2
+          done
+
+      - name: Pull model ${{ env.OLLAMA_MODEL }}
+        run: ollama pull "$OLLAMA_MODEL"
+
+      - name: Evaluate
+        run: |
+          set +e
+          start=$(date +%s)
+          java -jar target/triage.jar evaluate data/dataset.jsonl --classifier ollama
+          code=$?
+          echo "Evaluation took $(( $(date +%s) - start )) s, exit code $code"
+          echo "---"
+          cat results/evaluation-ollama.md
+          {
+            echo "Model: \`$OLLAMA_MODEL\` (Ollama, CPU, temperature 0)"
+            echo
+            cat results/evaluation-ollama.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: llm-evaluation
+          path: results/
