@@ -7,7 +7,8 @@
 An agent that reads failed automated tests from JUnit / Surefire reports, decides **why** each test
 failed (product bug, flaky test, environment, test data, broken locator), proposes a safe next step and
 **asks a human to approve it**. It works with a transparent rule-based classifier out of the box and can
-use an LLM (Claude) as the classifier, with deterministic guardrails around it.
+use an LLM as the classifier (Claude via API, or a free local open model via Ollama), with
+deterministic guardrails around it.
 
 All data in this repository is **100% synthetic**. No client, employer or production data is used.
 
@@ -26,7 +27,7 @@ flowchart LR
     B --> C[Redactor<br/>emails, cards, IBANs, tokens]
     C --> D{Classifier}
     D -->|default| E[Rule-based<br/>explainable signals]
-    D -->|--classifier llm| F[LLM<br/>strict JSON schema]
+    D -->|--classifier llm / ollama| F[LLM: Claude or local model<br/>strict JSON schema]
     E --> G[Action policy<br/>guardrails]
     F --> G
     G --> H[Human approval<br/>--interactive]
@@ -135,17 +136,38 @@ a hidden bug costs much more.
 
 ### Rules vs LLM
 
-| Metric | Rules (measured) | LLM (not measured yet) | Target for the LLM |
-|---|---|---|---|
-| Accuracy | 88.0% | — | ≥ 95% |
-| Macro F1 | 0.882 | — | ≥ 0.95 |
-| Hard cases solved | 7 of 11 | — | ≥ 10 of 11 |
-| Product bugs silenced | 0 | — | 0 (hard requirement) |
+| Metric | Rules | Qwen 2.5 7B, local (Ollama) | Claude API | Target for an LLM |
+|---|---|---|---|---|
+| Accuracy | **88.0%** | 70.0% | not measured yet | ≥ 95% |
+| Macro F1 | **0.882** | 0.674 | — | ≥ 0.95 |
+| Hard cases solved | **7 of 11** | 5 of 11 | — | ≥ 10 of 11 |
+| Product bugs silenced | **0** | **0** | — | 0 (hard requirement) |
+| Escalated to a human | 14 | 1 | — | — |
 
-The LLM column stays empty until a real run: numbers in this README are only ever measured, never
-estimated. The LLM classifier is evaluated with the same command and the same metrics
-(`--classifier llm`, report in `results/evaluation-llm.md`). In CI it runs only on manual dispatch,
-because it costs API tokens.
+Numbers in this README are only ever measured, never estimated. Full reports:
+[`results/evaluation-rules.md`](results/evaluation-rules.md),
+[`results/evaluation-ollama.md`](results/evaluation-ollama.md).
+
+What the local 7B model run showed (same prompt, schema and policy; 50 cases in about 19 minutes on
+the free GitHub runner CPU):
+
+- **It is worse than the rules here**: 70% vs 88%. It confuses test-data problems with product bugs
+  (7 of 10) and slow UI waits with broken locators (4 of 10 flaky cases).
+- **It is overconfident**: 14 of its 15 errors came with confidence ≥ 0.9, so the confidence threshold
+  barely helps; it escalated only 1 case, against 14 for the rules.
+- **The guardrails still held**: it called one real product bug flaky (`product_bug-09`, confidence 0.80);
+  the policy saw no instability in the run history and escalated it instead of re-running.
+  Zero product bugs were silenced.
+
+Takeaway: a small local model is not a drop-in replacement for transparent rules, and an LLM without
+deterministic guardrails would have hidden a real defect. Rules stay the default; next experiments are
+a hybrid mode (LLM only for low-confidence cases), few-shot examples and larger models.
+
+Run it yourself for free: install [Ollama](https://ollama.com), `ollama pull qwen2.5:7b`, then
+`java -jar target/triage.jar evaluate data/dataset.jsonl --classifier ollama`. In CI it is the
+[`llm-eval`](.github/workflows/llm-eval.yml) workflow (manual dispatch, any Ollama model tag).
+The Claude classifier (`--classifier llm`) uses the same command and metrics and needs an
+`ANTHROPIC_API_KEY` with API credit.
 
 These numbers are quality gates in `EvaluatorTest`: a change that drops accuracy below 85% or
 silences a product bug fails the build.
@@ -161,11 +183,12 @@ src/main/java/io/github/deingvard/triage/
   TriageCli.java           evaluate / report commands, approval loop, audit log
   model/                   FailureCase, Category, Action, Verdict, Decision
   io/                      JSONL dataset reader, XXE-safe JUnit XML reader
-  classify/                RuleBasedClassifier, LlmClassifier, AnthropicClient
+  classify/                RuleBasedClassifier, LlmClassifier, AnthropicClient, OllamaClient
   guard/                   Redactor, ActionPolicy
   eval/                    Evaluator, metrics, Markdown report
 src/test/java/...          JUnit 5 + AssertJ tests, incl. a fake LLM transport
 .github/workflows/ci.yml   build, tests, evaluation in the job summary
+.github/workflows/llm-eval.yml  free LLM evaluation with a local model on the CI runner
 ```
 
 ## Known limitations
