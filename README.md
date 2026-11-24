@@ -133,7 +133,17 @@ Four of the six errors are the deliberately hard cases. Every error ends either 
 or as an escalation to a human, which is the safe direction: an unnecessary bug report costs minutes,
 a hidden bug costs much more.
 
-The LLM classifier is evaluated with the same command and the same metrics
+### Rules vs LLM
+
+| Metric | Rules (measured) | LLM (not measured yet) | Target for the LLM |
+|---|---|---|---|
+| Accuracy | 88.0% | — | ≥ 95% |
+| Macro F1 | 0.882 | — | ≥ 0.95 |
+| Hard cases solved | 7 of 11 | — | ≥ 10 of 11 |
+| Product bugs silenced | 0 | — | 0 (hard requirement) |
+
+The LLM column stays empty until a real run: numbers in this README are only ever measured, never
+estimated. The LLM classifier is evaluated with the same command and the same metrics
 (`--classifier llm`, report in `results/evaluation-llm.md`). In CI it runs only on manual dispatch,
 because it costs API tokens.
 
